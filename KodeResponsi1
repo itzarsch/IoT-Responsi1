@@ -1,0 +1,63 @@
+#include <WiFi.h>
+
+#define FLAME_SENSOR 35   // pin analog sensor deteksi api
+#define LIGHT_SENSOR 34   // pin analog sensor cahaya (LDR)
+
+// Ganti dengan SSID & Password Wi-Fi
+const char* ssid = "GEDUNG B - WPA";
+const char* password = "123123123";
+
+bool wifiConnected = false;
+
+void setup() {
+  Serial.begin(9600);
+  delay(3000); // beri waktu Serial Monitor siap
+
+  Serial.println("\nMenghubungkan ke Wi-Fi...");
+  WiFi.begin(ssid, password);
+
+  // Timeout koneksi Wi-Fi (maks 15 detik)
+  int timeout = 90;
+  while (WiFi.status() != WL_CONNECTED && timeout > 0) {
+    delay(500);
+    Serial.print(".");
+    timeout--;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    wifiConnected = true;
+    Serial.println("\nWi-Fi berhasil terhubung!");
+    Serial.print("IP Address: "); Serial.println(WiFi.localIP());
+    Serial.print("MAC Address: "); Serial.println(WiFi.macAddress());
+  } else {
+    Serial.println("\nGagal terhubung ke Wi-Fi.");
+  }
+
+  Serial.println("Sistem Sensor Api dan Cahaya Siap!\n");
+}
+
+void loop() {
+  if (!wifiConnected) {
+    Serial.println("Wi-Fi belum tersambung. Cek koneksi.");
+    delay(5000);
+    return;
+  }
+
+  // --- Sensor Api ---
+  int nilaiAnalogApi = analogRead(FLAME_SENSOR);
+  float intensitasApi = 100.0 - (nilaiAnalogApi / 4095.0) * 100.0; // % intensitas
+  bool adaApi = nilaiAnalogApi > 2000; // threshold contoh
+
+  // --- Sensor Cahaya ---
+  int nilaiAnalogCahaya = analogRead(LIGHT_SENSOR);
+  float cahaya = 100.0 - (nilaiAnalogCahaya / 4095.0) * 100.0; // %
+
+  // --- Tampilkan hasil ---
+  Serial.println("=== Pembacaan Sensor ===");
+  Serial.print("Intensitas Api: "); Serial.print(intensitasApi); Serial.println(" %");
+
+  Serial.print("Intensitas Cahaya: "); Serial.print(cahaya); Serial.println(" %");
+  Serial.println();
+
+  delay(2000); // jeda 2 detik
+}
